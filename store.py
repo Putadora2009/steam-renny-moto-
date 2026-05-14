@@ -1,5 +1,6 @@
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit, QGridLayout
 
 class StoreWindow(QWidget):
     go_library = pyqtSignal()
@@ -40,8 +41,53 @@ class StoreWindow(QWidget):
         self.lbl_title = QLabel('--- TIENDA DE JUEGOS ---')
         self.lbl_title.setAlignment(Qt.AlignCenter)
         
-        self.lbl_games = QLabel('1. Cyberpunk 2077\n2. The Witcher 3\n3. Red Dead Redemption 2')
-        self.lbl_games.setAlignment(Qt.AlignCenter)
+        # Se reemplaza el QLabel de texto simple por un QGridLayout para organizar las portadas
+        self.games_layout = QGridLayout()
+        
+        # Lista con los nombres y los archivos de imagen exactos que subiste
+        self.games_data = [
+            ("1. Cyberpunk 2077", "cyberpunk2077.jpg"),
+            ("2. The Witcher 3", "thewitcher.webp"),
+            ("3. Red Dead Redemption 2", "reddead2.jpg"),
+            ("4. Elden Ring", "eldenring.jpg"),
+            ("5. Grand Theft Auto V", "gta5.jpg"),
+            ("6. Baldur's Gate 3", "baldurs.jpg"),
+            ("7. Stardew Valley", "stardewvalley.png"),
+            ("8. Hollow Knight", "hollow.webp")
+        ]
+
+        # Generar las portadas y los textos dinámicamente
+        row = 0
+        col = 0
+        for name, img_path in self.games_data:
+            # Etiqueta para la imagen
+            img_label = QLabel()
+            pixmap = QPixmap(img_path)
+            
+            # Escalar la imagen para que todas tengan el mismo tamaño (puedes ajustar estos números)
+            if not pixmap.isNull():
+                pixmap = pixmap.scaled(150, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                img_label.setPixmap(pixmap)
+            else:
+                img_label.setText("[Imagen no encontrada]")
+            
+            img_label.setAlignment(Qt.AlignCenter)
+
+            # Etiqueta para el título del juego
+            text_label = QLabel(name)
+            text_label.setAlignment(Qt.AlignCenter)
+
+            # Unir la imagen y el texto en un pequeño layout vertical
+            game_vbox = QVBoxLayout()
+            game_vbox.addWidget(img_label)
+            game_vbox.addWidget(text_label)
+
+            # Añadir ese juego a la cuadrícula principal (4 juegos por fila)
+            self.games_layout.addLayout(game_vbox, row, col)
+            col += 1
+            if col > 3:  # Al llegar a 4 columnas, salta a la siguiente fila
+                col = 0
+                row += 1
 
         # --- Botones de Navegación ---
         self.nav_layout = QHBoxLayout()
@@ -52,8 +98,9 @@ class StoreWindow(QWidget):
         self.nav_layout.addWidget(self.btn_nav_lib)
         self.nav_layout.addWidget(self.btn_nav_sup)
 
+        # Ensamblar el layout principal
         self.main_layout.addWidget(self.lbl_title)
-        self.main_layout.addWidget(self.lbl_games)
+        self.main_layout.addLayout(self.games_layout) # Agregamos la cuadrícula de imágenes aquí
         self.main_layout.addStretch()
         self.main_layout.addLayout(self.nav_layout)
         self.setLayout(self.main_layout)
