@@ -3,10 +3,21 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit, QGridLayout
 
+# --- AÑADIDO PARA HACER LAS IMÁGENES CLICKEABLES ---
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        super().mousePressEvent(event)
+# ---------------------------------------------------
+
 class StoreWindow(QWidget):
     go_library = pyqtSignal()
     go_support = pyqtSignal()
     logout_successful = pyqtSignal() # Señal para cerrar sesión
+    
+    # CAMBIADO A "object" PARA MAYOR COMPATIBILIDAD (Acepta diccionarios sin problema en cualquier versión de PyQt5)
+    go_purchase = pyqtSignal(object) 
 
     def __init__(self):
         super().__init__()
@@ -61,7 +72,9 @@ class StoreWindow(QWidget):
             {"title": "GTA 5", "img": "gta5.jpg"},
             {"title": "Red Dead Redemption 2", "img": "reddead2.jpg"},
             {"title": "Baldurs Gate 3", "img": "baldurs.jpg"},
-            {"title": "Hollow Night", "img": "hollow.webp"}
+            {"title": "Hollow Night", "img": "hollow.webp"},
+            {"title": "Batman Arkham", "img": "batman.jpg"}, 
+            {"title": "Bully", "img": "bully.jpg"}           
         ]
 
         # Obtener el directorio absoluto donde se encuentra este script
@@ -70,7 +83,11 @@ class StoreWindow(QWidget):
         for i, game in enumerate(self.games_data):
             game_vbox = QVBoxLayout()
             
-            img_label = QLabel()
+            # CLAVE: Nos aseguramos de usar la nueva clase ClickableLabel y no el QLabel normal
+            img_label = ClickableLabel() 
+            
+            # Usamos *args en el lambda para absorber de forma segura cualquier argumento por defecto que PyQt envíe
+            img_label.clicked.connect(lambda *args, g=game: self.go_purchase.emit(g))
             
             # 2. Generar ruta absoluta para la imagen
             img_path = os.path.join(base_dir, game["img"])
@@ -81,7 +98,9 @@ class StoreWindow(QWidget):
                 img_label.setPixmap(pixmap)
             else:
                 img_label.setText("[Imagen]")
+                
             img_label.setAlignment(Qt.AlignCenter)
+            img_label.setCursor(Qt.PointingHandCursor) 
             
             text_label = QLabel(game["title"])
             text_label.setAlignment(Qt.AlignCenter)
@@ -113,7 +132,7 @@ class StoreWindow(QWidget):
         if self.lang == 'es':
             self.lang = 'en'
             self.btn_lang.setText('Cambiar a Español')
-            self.btn_logout.setText('Log Out') # Traducción del botón
+            self.btn_logout.setText('Log Out') 
             self.input_search.setPlaceholderText('Search games...')
             self.btn_search.setText('Search')
             self.lbl_title.setText('--- GAME STORE ---')

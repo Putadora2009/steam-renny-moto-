@@ -6,6 +6,7 @@ from login import LoginWindow
 from store import StoreWindow
 from library import LibraryWindow
 from support import SupportWindow
+from purchase import PurchaseWindow
 
 class SteamCloneApp:
     def __init__(self):
@@ -78,12 +79,14 @@ class SteamCloneApp:
         self.store_win = StoreWindow()
         self.library_win = LibraryWindow()
         self.support_win = SupportWindow()
+        self.purchase_win = PurchaseWindow() # <-- AÑADIDO
         
         # Añadir ventanas al stack
         self.stack.addWidget(self.login_win)   # Índice 0
         self.stack.addWidget(self.store_win)   # Índice 1
         self.stack.addWidget(self.library_win) # Índice 2
         self.stack.addWidget(self.support_win) # Índice 3
+        self.stack.addWidget(self.purchase_win)# Índice 4 <-- AÑADIDO
         
         # Conectar las señales (cambios de ventana)
         self.login_win.login_successful.connect(lambda: self.stack.setCurrentIndex(1))
@@ -94,10 +97,18 @@ class SteamCloneApp:
         self.store_win.go_library.connect(lambda: self.stack.setCurrentIndex(2))
         self.store_win.go_support.connect(lambda: self.stack.setCurrentIndex(3))
         
+        # <-- CONEXIÓN PARA IR A COMPRAR -->
+        self.store_win.go_purchase.connect(self.open_purchase_window)
+        
         self.library_win.go_store.connect(lambda: self.stack.setCurrentIndex(1))
         self.support_win.go_store.connect(lambda: self.stack.setCurrentIndex(1))
+        self.purchase_win.go_store.connect(lambda: self.stack.setCurrentIndex(1)) # <-- AÑADIDO
         
         self.stack.show()
+
+    def open_purchase_window(self, game_data):
+        self.purchase_win.load_game(game_data)
+        self.stack.setCurrentIndex(4)
 
     def run(self):
         sys.exit(self.app.exec_())
